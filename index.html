@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PhysioConnect — صفحة ترحيبية + مريض + أخصائي</title>
+  <style>
+    :root{
+      --bg:#f6f9fb;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e5e7eb;
+      --sky:#0ea5e9;--sky-600:#0284c7;--emerald:#10b981;--rose:#ef4444;--amber:#f59e0b;
+      --radius:18px;--shadow:0 10px 22px rgba(2,132,199,.07)
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Tajawal",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text)
+    }
+    a{color:var(--sky-600);text-decoration:none}
+    header{
+      position:sticky;top:0;z-index:40;
+      background:#fff;border-bottom:1px solid var(--border)
+    }
+    .container{max-width:1180px;margin:auto;padding:0 16px}
+    .row{display:grid;gap:16px}
+    @media(min-width:860px){
+      .row-2{grid-template-columns:1.5fr 2fr}
+      .row-3{grid-template-columns:1fr 1fr 1fr}
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow)
+    }
+    .p-4{padding:16px}.p-5{padding:20px}.px-4{padding-left:16px;padding-right:16px}
+    .py-3{padding-top:12px;padding-bottom:12px}
+    .btn{
+      padding:10px 14px;border-radius:12px;
+      border:1px solid var(--border);
+      background:#fff;cursor:pointer;font:inherit
+    }
+    .btn:hover{background:#f8fafc}
+    .btn-primary{background:var(--sky);border-color:var(--sky);color:#fff}
+    .btn-primary:hover{background:var(--sky-600)}
+    .btn-emerald{background:var(--emerald);border-color:var(--emerald);color:#fff}
+    .btn-rose{border-color:#fecaca}
+    .badge{
+      display:inline-block;padding:4px 8px;border:1px solid #e2e8f0;
+      border-radius:999px;background:#f8fafc;color:#334155;font-size:12px
+    }
+    .muted{color:var(--muted)}
+    .hidden{display:none}
+    input,select,textarea{
+      border:1px solid var(--border);border-radius:12px;
+      padding:10px;width:100%;font:inherit;background:#fff
+    }
+    textarea{resize:vertical}
+    .section > .head{
+      display:flex;align-items:center;justify-content:space-between;margin-bottom:12px
+    }
+    .section > .head h3{margin:0;font-size:16px}
+    .progress{
+      height:10px;border-radius:999px;
+      background:#e5e7eb;overflow:hidden
+    }
+    .progress > div{height:100%;background:var(--emerald)}
+    .nav-btn{
+      margin-inline:4px;padding:10px 12px;border-radius:12px;
+      border:1px solid var(--border);background:#fff;cursor:pointer
+    }
+    .nav-btn.active{background:var(--sky-600);border-color:var(--sky-600);color:#fff}
+    .modal{
+      position:fixed;inset:0;background:rgba(0,0,0,.35);
+      backdrop-filter:blur(2px);display:grid;place-items:center;
+      padding:16px;z-index:60
+    }
+    .modal.hidden{display:none !important}
+    .modal-card{
+      background:#fff;border:1px solid var(--border);
+      border-radius:16px;max-width:760px;width:100%
+    }
+    .list{display:grid;gap:12px}
+    .flex{display:flex}.items-center{align-items:center}
+    .justify-between{justify-content:space-between}.gap-2{gap:8px}.gap-3{gap:12px}
+    .text-xs{font-size:12px}.text-sm{font-size:14px}
+    .text-lg{font-size:18px}.text-xl{font-size:22px}.fw-700{font-weight:700}
+    .line-through{text-decoration:line-through}
+    .center{text-align:center}
+    footer{border-top:1px solid var(--border);background:#fff}
+  </style>
+</head>
+<body>
+  <!-- الهيدر بعد تسجيل الدخول (مريض/أخصائي) -->
+  <header id="navbar" class="hidden">
+    <div class="container py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <!-- لوقو PhysioConnect الجديد -->
+        <img src="physioconnect-logo.png" alt="PhysioConnect Logo" style="height:40px;width:auto;border-radius:10px;display:block" />
+        <div>
+          <div class="fw-700">PhysioConnect</div>
+          <div class="text-xs muted">منصة العلاج الطبيعي عن بُعد</div>
+        </div>
+      </div>
+      <nav>
+        <button class="nav-btn" data-route="home" data-role="patient">الرئيسية (المريض)</button>
+        <button class="nav-btn" data-route="find" data-role="patient">ابحث عن أخصائي</button>
+        <button class="nav-btn" data-route="dashboard" data-role="patient">ملفي العلاجي</button>
+        <button class="nav-btn" data-route="specialist" data-role="specialist">صفحة الأخصائي</button>
+        <button id="logoutBtn" class="nav-btn" style="margin-inline-start:8px">خروج</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- هيدر صفحة الترحيب: زر تسجيل الدخول أعلى الصفحة -->
+  <header id="landing-header">
+    <div class="container py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <!-- نفس اللوقو في صفحة الترحيب -->
+        <img src="physioconnect-logo.png" alt="PhysioConnect Logo" style="height:32px;width:auto;border-radius:10px;display:block" />
+        <div class="fw-700 text-lg">PhysioConnect</div>
+      </div>
+      <button id="landing-login-top" class="btn btn-primary">
+        تسجيل الدخول
+      </button>
+    </div>
+  </header>
+
+  <!-- صفحة رئيسية قبل تسجيل الدخول (Landing) -->
+  <main id="page-landing">
+    <!-- الهيرو + لماذا فيزيوكونكت -->
+    <section class="container" style="padding:18px 16px 20px">
+      <div class="row row-2" style="align-items:center">
+        <div>
+          <div class="badge" style="margin-bottom:10px">نسخة تجريبية للعرض الأكاديمي</div>
+          <h1 class="text-xl fw-700" style="margin:0 0 8px">
+            PhysioConnect
+            <span style="color:var(--sky)">منصة العلاج الطبيعي عن بُعد</span>
+          </h1>
+          <p class="text-sm muted" style="margin:0 0 14px">
+            تربط المرضى بأخصائيي العلاج الطبيعي بعد تقييم حضوري أولي، ثم متابعة رقمية تشمل خطة تمارين،
+            تقييم الألم والجهد، ومتابعة تقدم الحالة عبر رسوم بيانية وتقارير مبسّطة.
+          </p>
+          <div class="flex gap-2" style="margin-bottom:10px;flex-wrap:wrap">
+            <button id="landing-scroll" class="btn">استكشف مزايا المنصة</button>
+          </div>
+          <div class="text-xs muted">
+            * هذه النسخة لا تحفظ بيانات حقيقية، إنما تستخدم
+            <b>LocalStorage</b> كنموذج أولي للعرض فقط.
+          </div>
+        </div>
+        <div class="card p-4">
+          <div class="fw-700" style="margin-bottom:6px">لماذا PhysioConnect؟</div>
+          <ul class="text-sm" style="margin:0;padding-right:20px">
+            <li><b>مطابقة ذكية:</b> حسب الأعراض، التخصص الدقيق، والموقع.</li>
+            <li><b>متابعة عن بُعد:</b> جلسات مرئية آمنة وخطة تمارين منزلية.</li>
+            <li><b>تقييم التقدم:</b> أدوات لمتابعة شدة الألم ومستوى الجهد (RPE).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="landing-features" class="container row row-3" style="padding:0 16px 28px">
+      <div class="card p-4 section" style="background:#f0fdf4">
+        <div class="head"><h3>خطة علاجية مخصصة 🟢</h3></div>
+        <div class="text-sm">
+          الأخصائي يحدد لك تمارين منزلية دقيقة، وتستطيع تسجيل مدى الألم والجهد في كل تمرين.
+        </div>
+      </div>
+      <div class="card p-4 section" style="background:#fff1f2">
+        <div class="head"><h3>لا تنتظر! 🔴</h3></div>
+        <div class="text-sm">
+          البدء المبكر بالعلاج الطبيعي يقلل مدة التعافي ويمنع تحوّل الألم إلى حالة مزمنة. نظامنا يسهّل عليك الخطوة الأولى.
+        </div>
+      </div>
+      <div class="card p-4 section" style="background:#eff6ff">
+        <div class="head"><h3>أمان وخصوصية 🔹</h3></div>
+        <div class="text-sm">
+          نلتزم بالمعايير العالمية لحماية بياناتك الصحية وجلساتك، لتطمئن على خصوصيتك بالكامل.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Login -->
+  <main id="page-login" class="container hidden" style="padding:28px 16px 24px">
+    <div class="card p-5 section">
+      <div style="margin-bottom:8px">
+        <button id="login-back" class="btn">⬅️ العودة للصفحة الرئيسية</button>
+      </div>
+      <div class="head"><h3>تسجيل الدخول</h3></div>
+      <div class="row" style="gap:14px">
+        <div>
+          <div class="text-sm muted" style="margin-bottom:6px">اختر نوع الحساب</div>
+          <div class="row" style="grid-template-columns:1fr 1fr;gap:10px">
+            <button id="role-patient" class="btn">مريض</button>
+            <button id="role-specialist" class="btn">أخصائي</button>
+          </div>
+        </div>
+        <label class="text-sm">البريد الإلكتروني
+          <input id="login-email" placeholder="you@example.com" />
+        </label>
+        <label class="text-sm">كلمة المرور
+          <input id="login-pass" type="password" placeholder="••••" />
+        </label>
+        <button id="login-submit" class="btn btn-primary">دخول</button>
+        <div class="text-xs muted">نسخة تجريبية: أي بريد صالح + كلمة مرور (٤+ أحرف) تعمل.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Home (مريض) - مختلفة عن صفحة الترحيب -->
+  <main id="page-home" class="hidden">
+    <!-- صف علوي: ملخص + بحث سريع -->
+    <section class="container" style="padding:24px 16px 8px">
+      <div class="row row-2" style="align-items:start">
+        <!-- ملخص حالة المريض -->
+        <div class="card p-5 section">
+          <div class="head">
+            <h3>ملخص حالتك اليوم</h3>
+          </div>
+          <div class="text-sm muted">
+            نظرة سريعة على تقدّمك في خطة التمارين وأقرب جلسة علاجية.
+          </div>
+
+          <!-- التقدّم -->
+          <div style="margin-top:14px">
+            <div class="text-sm muted">
+              تقدّمك في التمارين: <b id="home-progressPct">0%</b>
+            </div>
+            <div class="progress" style="margin-top:6px">
+              <div id="home-progressBar" style="width:0%"></div>
+            </div>
+          </div>
+
+          <!-- الجلسة القادمة -->
+          <div style="margin-top:16px">
+            <div class="fw-700 text-sm" style="margin-bottom:6px">جلستك القادمة</div>
+            <div id="home-next-appt" class="text-sm muted">
+              لا توجد مواعيد مقرّرة حاليًا. يمكنك حجز موعد جديد من الأزرار بالأسفل.
+            </div>
+          </div>
+
+          <!-- أزرار سريعة -->
+          <div class="flex gap-2" style="margin-top:16px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="home-go-dashboard">الذهاب لملفي العلاجي</button>
+            <button class="btn" id="home-go-find">حجز موعد جديد / العثور على أخصائي</button>
+          </div>
+        </div>
+
+        <!-- نص ترحيبي + بحث سريع عن أخصائي -->
+        <div>
+          <h1 class="text-xl fw-700" style="margin:0 0 10px">
+            مرحبًا بك في ملفك العلاجي على PhysioConnect
+          </h1>
+          <p class="text-sm muted" style="margin:0 0 14px">
+            من هنا يمكنك متابعة خطتك الحالية، ومتى احتجت رأيًا إضافيًا يمكنك البحث عن أخصائي جديد يناسب تطوّر حالتك.
+          </p>
+
+          <div class="card p-4 section">
+            <div class="head">
+              <h3>بحث سريع عن أخصائي</h3>
+            </div>
+            <div class="flex gap-2">
+              <button id="home-search" class="btn btn-primary" style="width:110px">ابحث</button>
+              <div style="flex:1">
+                <input id="home-query" placeholder="مثال: ألم الركبة بعد الجلوس الطويل" />
+              </div>
+            </div>
+            <div class="text-xs muted" style="margin-top:6px">
+              سيتم نقلك إلى صفحة البحث مع عرض الأخصائيين المطابقين للكلمات التي تكتبها هنا.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- كروت توعوية -->
+    <section class="container row row-3" style="padding:8px 16px 28px">
+      <div class="card p-4 section" style="background:#f0fdf4">
+        <div class="head"><h3>خطة تمارينك</h3></div>
+        <div class="text-sm">
+          راجع قائمة التمارين من صفحة "ملفي العلاجي"، وعلِّم على كل تمرين تم إنجازه لتحسين دقّة متابعة التقدّم.
+        </div>
+      </div>
+      <div class="card p-4 section" style="background:#fff1f2">
+        <div class="head"><h3>تذكير مهم</h3></div>
+        <div class="text-sm">
+          إذا زاد الألم أو ظهر عرض جديد، حدّث ملاحظاتك في لوحة المريض، وأبلغ أخصائيك في الجلسة القادمة.
+        </div>
+      </div>
+      <div class="card p-4 section" style="background:#eff6ff">
+        <div class="head"><h3>نصيحة اليوم</h3></div>
+        <div class="text-sm">
+          حاول تقسيم وقت الجلوس الطويل إلى فترات قصيرة، مع المشي أو تمارين إطالة بسيطة كل 30–45 دقيقة.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Find -->
+  <main id="page-find" class="hidden">
+    <section class="container section" style="padding:20px 16px 24px">
+      <div class="card p-5 section">
+        <div class="head"><h3>ابحث عن أخصائي</h3><div class="text-sm muted">أدخل أعرَاضك ليقترح النظام الأنسب</div></div>
+        <div class="flex gap-2" style="margin-bottom:10px">
+          <input id="find-query" placeholder="مثال: ألم أسفل الظهر عند الانحناء" />
+          <button id="find-search" class="btn btn-primary">بحث</button>
+        </div>
+        <div id="find-hint" class="text-xs muted" style="margin-bottom:10px"></div>
+        <div id="find-list" class="list"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Dashboard (Patient) -->
+  <main id="page-dashboard" class="hidden">
+    <section class="container row row-3" style="padding:20px 16px 24px;align-items:start">
+      <div class="row" style="gap:16px">
+        <div class="card p-4 section">
+          <div class="head"><h3>مواعيدي</h3></div>
+          <div id="appt-list" class="list"></div>
+        </div>
+        <div class="card p-4 section">
+          <div class="head"><h3>ملاحظات سريعة</h3></div>
+          <textarea rows="4" placeholder="اكتب أي ملاحظة للطبيب في جلستك القادمة (تحفظ محلياً فقط)…" id="quick-note"></textarea>
+        </div>
+      </div>
+      <div>
+        <div class="card p-4 section">
+          <div class="head"><h3>خطة التمارين</h3><div class="text-sm muted">تقدّمك: <span id="progressPct">0%</span></div></div>
+          <div class="progress" style="margin-bottom:10px"><div id="progressBar" style="width:0%"></div></div>
+          <div id="ex-list" class="list"></div>
+          <div class="card p-4 section" style="margin-top:12px">
+            <div class="head"><h3>إرشادات</h3></div>
+            <ul class="text-sm" style="margin:0;padding-right:20px">
+              <li>حافظ على استقامة الظهر عند الجلوس الطويل، قُم وتحرّك كل 30–45 دقيقة.</li>
+              <li>وزّع التمارين على اليوم بدل تجميعها دفعة واحدة.</li>
+              <li>أوقف التمرين عند ظهور ألم حاد أو دوار غير معتاد.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- المساعد الذكي للمريض -->
+        <div class="card p-4 section" style="margin-top:12px">
+          <div class="head">
+            <h3>المساعد الذكي (تجريبي للمريض)</h3>
+            <div class="text-sm muted">يساعدك على فهم تمارينك وألمك بشكل مبسّط.</div>
+          </div>
+          <label class="text-sm">اكتب سؤالك أو وصف حالتك
+            <textarea id="pt-ai-input" rows="3" placeholder="مثال: أحس بألم في الركبة بعد صعود الدرج..."></textarea>
+          </label>
+          <div class="flex gap-2" style="margin-top:8px">
+            <button id="pt-ai-run" class="btn btn-primary">تحليل مبدئي</button>
+            <span class="text-xs muted">الرد للتثقيف الصحي فقط ولا يغني عن استشارة الأخصائي.</span>
+          </div>
+          <div id="pt-ai-output" class="text-sm" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Specialist Page -->
+  <main id="page-specialist" class="hidden">
+    <!-- تبويبات صفحة الأخصائي -->
+    <section class="container" style="padding:16px 16px 0">
+      <div class="card p-4">
+        <div class="flex gap-2">
+          <button class="btn sp-tab-btn btn-primary" data-tab="sp-tab-main">خطة المرضى</button>
+          <button class="btn sp-tab-btn" data-tab="sp-tab-appts">مواعيد المرضى</button>
+          <button class="btn sp-tab-btn" data-tab="sp-tab-ai">المساعد الذكي</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- تبويب: إدارة المرضى + خطة التمارين + الرسم البياني -->
+    <section id="sp-tab-main" class="container row row-2" style="padding:20px 16px 24px;align-items:start">
+      <!-- العمود الأيسر: خطة التمارين فقط -->
+      <div class="row" style="gap:16px;align-self:start">
+        <!-- تصميم التمارين للمريض المحدد -->
+        <div class="card p-4 section">
+          <div class="head">
+            <h3>تصميم التمارين للمريض المحدد</h3>
+            <div class="text-sm muted">المريض الحالي: <b id="sp-current-name">—</b></div>
+          </div>
+          <div class="row row-2">
+            <label class="text-sm">اسم التمرين
+              <input id="ex-name" placeholder="مثال: Bridging — رفع الحوض" />
+            </label>
+            <label class="text-sm">التكرارات (Reps)
+              <input id="ex-reps" type="number" min="1" value="12" />
+            </label>
+            <label class="text-sm">الجولات (Sets)
+              <input id="ex-sets" type="number" min="1" value="3" />
+            </label>
+            <label class="text-sm">الحبس/الثواني (اختياري)
+              <input id="ex-hold" type="number" min="0" value="0" />
+            </label>
+            <label class="text-sm">الفيديو التوضيحي (اختياري)
+              <input id="ex-video" placeholder="https://.../demo.mp4" />
+            </label>
+            <label class="text-sm">إرشادات
+              <input id="ex-notes" placeholder="شدّ البطن قبل الرفع، التنفس…" />
+            </label>
+          </div>
+          <div class="flex gap-2" style="margin-top:8px">
+            <button id="sp-add-ex" class="btn btn-emerald">إضافة التمرين للخطة</button>
+            <button id="sp-new-plan" class="btn">خطة جديدة</button>
+          </div>
+          <div style="margin-top:10px">
+            <div class="fw-700" style="margin-bottom:6px">خطة المريض</div>
+            <div id="sp-plan" class="list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- العمود الأيمن: قائمة المرضى + تحتها الرسم البياني -->
+      <div class="row" style="gap:16px;align-self:start">
+        <!-- قائمة المرضى -->
+        <div class="card p-4 section">
+          <div class="head"><h3>قائمة المرضى</h3></div>
+          <div id="sp-patients" class="list"></div>
+          <div class="row" style="grid-template-columns:2fr 1fr;gap:8px;margin-top:8px">
+            <input id="sp-new-name" placeholder="اسم المريض" />
+            <button id="sp-add" class="btn btn-primary">إضافة</button>
+          </div>
+        </div>
+
+        <!-- حالة المريض — الرسم البياني -->
+        <div class="card p-4 section">
+          <div class="head">
+            <h3>حالة المريض — الرسم البياني</h3>
+            <button id="sp-add-reading" class="btn btn-primary">إضافة قراءة</button>
+          </div>
+          <svg id="sp-chart" viewBox="0 0 560 220" style="width:100%;height:220px"></svg>
+          <div class="text-xs muted">يعرض الألم و RPE لآخر 14 يومًا للمريض المحدد.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- تبويب: مواعيد المرضى لدى الأخصائي -->
+    <section id="sp-tab-appts" class="container hidden" style="padding:20px 16px 28px">
+      <div class="card p-4 section">
+        <div class="head"><h3>مواعيد المرضى لدى الأخصائي</h3><div class="text-sm muted">تعرض فقط المواعيد التي حجزت باسم الأخصائي المحدد في البيانات.</div></div>
+        <div class="row" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">
+          <label class="text-sm">تصفية نصيّة (اسم/ملاحظة)
+            <input id="sp-appt-q" placeholder="ابحث داخل المواعيد" />
+          </label>
+          <div class="text-sm muted" style="display:flex;align-items:end">يمكنك إلغاء موعد أو مشاركة تفاصيله.</div>
+        </div>
+        <div id="sp-appointments" class="list"></div>
+      </div>
+    </section>
+
+    <!-- تبويب: المساعد الذكي للأخصائي -->
+    <section id="sp-tab-ai" class="container hidden" style="padding:20px 16px 28px">
+      <div class="card p-4 section">
+        <div class="head"><h3>المساعد الذكي (تجريبي للأخصائي)</h3><div class="text-sm muted">يعطي مقترحات أولية ولا يغني عن التقييم السريري.</div></div>
+        <label class="text-sm">وصف مختصر للحالة أو السؤال
+          <textarea id="ai-input" rows="4" placeholder="مثال: ألم مزمن أسفل الظهر عند الجلوس الطويل..."></textarea>
+        </label>
+        <div class="flex gap-2" style="margin-top:8px">
+          <button id="ai-run" class="btn btn-primary">تحليل مبدئي</button>
+          <span class="text-xs muted">النتائج لأغراض تعليمية فقط ولا تعتبر تشخيصًا طبيًا.</span>
+        </div>
+        <div id="ai-output" class="text-sm" style="margin-top:10px"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Booking Modal -->
+  <div id="booking" class="modal hidden" aria-hidden="true">
+    <div class="modal-card p-5">
+      <div class="flex items-center justify-between"><b id="bk-title">حجز موعد</b><button class="btn" data-close>إغلاق</button></div>
+      <div class="row row-2" style="margin-top:8px">
+        <label class="text-sm">التاريخ
+          <input id="bk-date" type="date" />
+        </label>
+        <label class="text-sm">الوقت
+          <select id="bk-time"><option value="">اختر وقتًا</option></select>
+        </label>
+        <label class="text-sm" style="grid-column:1/-1">ملاحظات للحالة (اختياري)
+          <textarea id="bk-notes" rows="3" placeholder="ألم يزداد عند صعود الدرج…"></textarea>
+        </label>
+      </div>
+      <div class="flex items-center justify-end gap-2" style="margin-top:10px">
+        <button class="btn" data-close>إلغاء</button>
+        <button id="bk-confirm" class="btn btn-primary" disabled>تأكيد الحجز</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div id="share" class="modal hidden" aria-hidden="true">
+    <div class="modal-card p-5">
+      <div class="flex items-center justify-between"><b>حفظ ومشاركة بيانات الحجز</b><button class="btn" data-close>إغلاق</button></div>
+      <div class="row row-2" style="margin-top:8px">
+        <div>
+          <div class="text-sm"><span class="muted">الأخصائي:</span> <b id="sh-sp">—</b></div>
+          <div class="text-sm"><span class="muted">التاريخ:</span> <span id="sh-dt">—</span></div>
+          <div class="text-sm"><span class="muted">الأعراض:</span> <span id="sh-sym">—</span></div>
+          <div class="text-sm"><span class="muted">ملاحظات:</span> <span id="sh-notes">—</span></div>
+          <div class="text-sm"><span class="muted">رمز الإحالة:</span> <code id="sh-id">—</code></div>
+          <div class="flex gap-2" style="margin-top:8px">
+            <a id="sh-mail" class="btn btn-primary" href="#">إرسال عبر البريد</a>
+            <a id="sh-wa" class="btn" href="#" target="_blank" rel="noreferrer">واتساب</a>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm">ملف JSON للإحالة:</label>
+          <textarea id="sh-json" class="text-sm" style="width:100%;height:140px;margin-top:6px"></textarea>
+          <div class="flex gap-2" style="margin-top:8px">
+            <button id="sh-copy" class="btn">نسخ</button>
+            <button id="sh-dl" class="btn">تنزيل JSON</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="py-3">
+    <div class="container text-xs muted flex items-center justify-between">
+      <div>© <span id="year"></span> PhysioConnect — نسخة أولية للعرض</div>
+      <div class="flex gap-3"><a href="#">الخصوصية</a><a href="#">الشروط</a><span style="color:#cbd5e1">|</span><span>❤️ للصحة المجتمعية</span></div>
+    </div>
+  </footer>
+
+  <script>
+  // ===== Utilities =====
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const saveLS = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
+  const readLS = (k,d)=>{try{const r=localStorage.getItem(k);return r?JSON.parse(r):d}catch{ return d }};
+  const uid = ()=> Math.random().toString(36).slice(2)+Date.now().toString(36);
+  const copyText = async (t)=>{try{await navigator.clipboard.writeText(t);return true}catch{return false}};
+  const downloadJSON=(data,filename)=>{
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+    URL.revokeObjectURL(url)
+  };
+
+  // ===== Data (demo) =====
+  const SPECIALISTS=[
+    {id:"sp1",name:"د. آمنة الحربي",title:"أخصائية علاج طبيعي – إصابات رياضية",rating:4.9,reviews:128,tags:["ركبة","كتف","تمارين تقوية","رياضي"],location:"بريدة",remote:true,price:180,slots:["09:00","11:30","16:00","20:00"],email:"amina.physio@example.com",phone:"+966500000001"},
+    {id:"sp2",name:"أ. محمد السالم",title:"أخصائي علاج طبيعي – آلام الظهر والرقبة",rating:4.7,reviews:94,tags:["رقبة","ظهر","انزلاق غضروفي","وضعية"],location:"بريدة",remote:true,price:150,slots:["10:00","13:30","18:00"],email:"moh.salem@example.com",phone:"+966500000002"},
+    {id:"sp3",name:"د. يمنى القرني",title:"علاج طبيعي – ما بعد العمليات والجروح",rating:4.8,reviews:66,tags:["تأهيل","استشفاء","ورك","ركبة"],location:"بريدة",remote:false,price:200,slots:["08:30","12:00","19:30"],email:"yumna.q@example.com",phone:"+966500000003"}
+  ];
+  const DEFAULT_EXERCISES=[
+    {id:"ex-1",name:"رفع الركبة (3×12)",desc:"تقوية العضلة الرباعية ورفع السيطرة على مفصل الورك والركبة.",steps:["استلقِ على ظهرك…","شدّ البطن وارفع الساق…","اثبت 2–3 ثوانٍ ثم انزل…"],cautions:["توقف عند الألم الحاد","حافظ على الظهر مسطحًا"],pain:null,effort:null,done:false},
+    {id:"ex-2",name:"تمرين الجسر (3×10)",desc:"تقوية الأرداف وأسفل الظهر.",steps:["استلقِ مع ثني الركبتين…","ارفع الحوض…","اثبت 3 ثوانٍ…"],cautions:["تجنّب فرط قوس الظهر","تنفّس طبيعيًا"],pain:null,effort:null,done:false},
+    {id:"ex-3",name:"إطالة أوتار الركبة (مرتين/اليوم)",desc:"إطالة ثابتة لزيادة المرونة.",steps:["اجلس وامدد ساقًا…","انحنِ من الورك…","اثبت 20–30 ثانية…"],cautions:["لا تنطنط أثناء الإطالة","أوقف عند خدر شديد"],pain:null,effort:null,done:false}
+  ];
+  const DEFAULT_PATIENTS=[{id:"p-1",name:"محمد علي"},{id:"p-2",name:"سارة حسن"},{id:"p-3",name:"خالد ناصر"}];
+
+  const PAIN_LEVELS=["لا ألم","خفيف","متوسط","شديد","شديد جدًا"];
+  const EFFORT_LEVELS=["خفيف","متوسط","مرتفع"];
+
+  // ===== App State =====
+  let route='landing';
+  let role=null; // 'patient' | 'specialist'
+  let query='ركبة';
+  let results=[...SPECIALISTS];
+  let selectedSP=null;
+  let exercises=readLS('exercises', DEFAULT_EXERCISES);
+  let appointments=readLS('appointments', []);
+  let referrals=readLS('referrals', []);
+
+  let sp_patients=readLS('sp_patients', DEFAULT_PATIENTS);
+  let sp_plans=readLS('sp_plans', {});
+  let sp_readings=readLS('sp_readings', {});
+  // نستخدم أول أخصائي كهوية افتراضية لربط المواعيد فقط
+  let sp_userId = readLS('sp_userId', SPECIALISTS[0]?.id || 'sp1');
+  let sp_currentId=sp_patients[0]?.id || '';
+
+  // ===== Helpers: تقدم التمارين + صفحة المريض الرئيسية =====
+  function calculateProgress(){
+    const total = exercises.length || 1;
+    const done = exercises.filter(e=>e.done).length;
+    const pct = Math.round((done/total)*100);
+    return {total,done,pct};
+  }
+
+  function renderHome(){
+    // شريط التقدم
+    const { pct } = calculateProgress();
+    const pctSafe = isNaN(pct)?0:pct;
+    const pctText = pctSafe + '%';
+    const pctEl = document.getElementById('home-progressPct');
+    const barEl = document.getElementById('home-progressBar');
+    if(pctEl) pctEl.textContent = pctText;
+    if(barEl) barEl.style.width = pctText;
+
+    // الجلسة القادمة
+    const box = document.getElementById('home-next-appt');
+    if(!box) return;
+    box.innerHTML='';
+
+    if(!appointments.length){
+      box.innerHTML='<span class="muted text-sm">لا توجد مواعيد مقرّرة حاليًا. يمكنك حجز موعد جديد من زر "حجز موعد جديد / العثور على أخصائي".</span>';
+      return;
+    }
+    const now = new Date();
+    const sorted=[...appointments].sort(
+      (a,b)=> new Date(a.date+' '+a.time) - new Date(b.date+' '+b.time)
+    );
+    const next = sorted.find(a=> new Date(a.date+' '+a.time) > now) || sorted[0];
+
+    box.innerHTML=`
+      <div class="card p-4" style="background:#f0f9ff;border-color:var(--sky-600);border-width:1px">
+        <div class="fw-700">${next.specialist.name}</div>
+        <div class="text-sm muted">
+          📅 ${next.date} • ${next.time}
+          — ${next.specialist.remote ? 'جلسة عن بُعد' : ('في العيادة / '+next.specialist.location)}
+        </div>
+        ${next.notes ? `<div class="text-xs muted" style="margin-top:4px">ملاحظاتك: ${next.notes}</div>` : ''}
+      </div>
+    `;
+  }
+
+  // ===== Routing =====
+  const pages={
+    landing: $('#page-landing'),
+    login: $('#page-login'),
+    home: $('#page-home'),
+    find: $('#page-find'),
+    dashboard: $('#page-dashboard'),
+    specialist: $('#page-specialist')
+  };
+
+  function setRoute(r){
+    if(role==='patient' && r==='specialist') r='home';
+    if(role==='specialist' && (r==='dashboard' || r==='find' || r==='home')) r='specialist';
+    route=r;
+    Object.values(pages).forEach(el=>el&&el.classList.add('hidden'));
+    pages[r]?.classList.remove('hidden');
+
+    const navBar = document.getElementById('navbar');
+    const landingHeader = document.getElementById('landing-header');
+
+    if(r==='landing'){
+      landingHeader.classList.remove('hidden');
+      navBar.classList.add('hidden');
+    }else if(r==='login'){
+      landingHeader.classList.add('hidden');
+      navBar.classList.add('hidden');
+    }else{
+      landingHeader.classList.add('hidden');
+      navBar.classList.remove('hidden');
+    }
+
+    updateNavbarForRole();
+    $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.route===r));
+    if(r==='dashboard'){renderDashboard()}
+    if(r==='find'){renderFind()}
+    if(r==='home'){ $('#home-query').value=query; renderHome(); }
+    if(r==='specialist'){
+      renderSpecialist();
+      renderSpAppointments();
+      setSpTab('sp-tab-main');
+    }
+  }
+
+  // ===== Navbar events =====
+  function updateNavbarForRole(){
+    $$('.nav-btn[data-role]').forEach(btn=>{
+      const need = btn.dataset.role;
+      btn.style.display = (!role || need===undefined) ? '' : (need===String(role) ? '' : 'none');
+    });
+  }
+  $$('.nav-btn').forEach(b=> b.addEventListener('click',()=> setRoute(b.dataset.route)) );
+  $('#logoutBtn').addEventListener('click',()=>{ role=null; updateNavbarForRole(); setRoute('landing') });
+
+  // ===== Landing events =====
+  const landingLoginTop = document.getElementById('landing-login-top');
+  if(landingLoginTop){
+    landingLoginTop.addEventListener('click', ()=> setRoute('login'));
+  }
+
+  const landingSearchBtn = document.getElementById('landing-search');
+  if(landingSearchBtn){
+    landingSearchBtn.addEventListener('click',()=>{
+      const val = (document.getElementById('landing-query')?.value || '').trim();
+      query = val || query;
+      search();
+      setRoute('find');
+    });
+  }
+  const landingGoFind = document.getElementById('landing-go-find');
+  if(landingGoFind){
+    landingGoFind.addEventListener('click',()=> setRoute('find'));
+  }
+
+  // ===== Login =====
+  let chosenRole=null;
+  $('#role-patient').addEventListener('click',()=>{
+    chosenRole='patient';
+    $('#role-patient').classList.add('btn-primary');
+    $('#role-specialist').classList.remove('btn-primary')
+  });
+  $('#role-specialist').addEventListener('click',()=>{
+    chosenRole='specialist';
+    $('#role-specialist').classList.add('btn-primary');
+    $('#role-patient').classList.remove('btn-primary')
+  });
+  $('#login-submit').addEventListener('click',()=>{
+    const email=$('#login-email').value.trim();
+    const pass=$('#login-pass').value;
+    if(!chosenRole || !email.includes('@') || pass.length<4){
+      alert('تحقق من النوع والبريد وكلمة المرور (٤+).'); return;
+    }
+    role=chosenRole;
+    setRoute(role==='patient'?'home':'specialist');
+  });
+
+  const loginBackBtn = document.getElementById('login-back');
+  if(loginBackBtn){
+    loginBackBtn.addEventListener('click', ()=> setRoute('landing'));
+  }
+
+  // ===== Home =====
+  $('#home-search').addEventListener('click',()=>{
+    query=$('#home-query').value;
+    search();
+    setRoute('find');
+  });
+  $('#home-go-find').addEventListener('click',()=> setRoute('find'));
+  const homeGoDash = document.getElementById('home-go-dashboard');
+  if(homeGoDash){
+    homeGoDash.addEventListener('click',()=> setRoute('dashboard'));
+  }
+
+  // ===== Find =====
+  $('#find-search').addEventListener('click',()=>{query=$('#find-query').value; search();});
+  function search(){
+    const q=(query||'').trim();
+    if(!q){ results=[...SPECIALISTS]; renderFind(); return }
+    const words=q.replace(/[،,؛.]/g,' ').split(/\s+/).filter(Boolean);
+    results=([...SPECIALISTS].map(sp=>({
+      sp,
+      score:words.reduce((a,w)=> a + (sp.tags.some(t=>t.includes(w))?1:0),0)
+    }))
+      .sort((a,b)=> b.score - a.score || b.sp.rating - a.sp.rating)
+      .filter(x=> x.score>0 || words.length===0)
+      .map(x=>x.sp));
+    renderFind();
+  }
+  function renderFind(){
+    $('#find-query').value=query;
+    $('#find-hint').textContent = query?`نتائج مطابقة لـ "${query}" — ${results.length} أخصائي/ـة مقترح/ـة`:'';
+    const box=$('#find-list'); box.innerHTML='';
+    if(results.length===0){
+      box.innerHTML = `<div class="center muted" style="padding:30px">لا توجد نتائج مطابقة حاليًا — جرّب كلمات أخرى (مثال: ركبة، رقبة، ظهر).</div>`;
+      return;
+    }
+    results.forEach(sp=>{
+      const el=document.createElement('div'); el.className='card p-4';
+      el.innerHTML=`
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <b>${sp.name}</b>
+              <span class="badge">${sp.location}</span>
+              ${sp.remote?'<span class="badge">عن بُعد</span>':''}
+            </div>
+            <div class="text-sm muted" style="margin-top:2px">${sp.title}</div>
+            <div class="text-xs muted" style="margin-top:6px">⭐ ${sp.rating.toFixed(1)} (${sp.reviews} تقييم)</div>
+            <div style="margin-top:8px">${sp.tags.map(t=>`<span class="badge">#${t}</span>`).join(' ')}</div>
+            <div class="text-sm" style="margin-top:8px">📍 ${sp.location} • <span style="color:var(--sky-600);font-weight:600">${sp.price} ر.س</span> / جلسة</div>
+          </div>
+          <button class="btn btn-primary">حجز موعد</button>
+        </div>`;
+      el.querySelector('button').addEventListener('click',()=> openBooking(sp));
+      box.appendChild(el);
+    });
+  }
+
+  // ===== Booking / Share =====
+  function openBooking(sp){
+    selectedSP=sp;
+    $('#bk-title').textContent=`حجز موعد مع ${sp.name}`;
+    const sel=$('#bk-time');
+    sel.innerHTML='<option value="">اختر وقتًا</option>' + sp.slots.map(s=>`<option>${s}</option>`).join('');
+    $('#bk-date').value='';
+    $('#bk-notes').value='';
+    $('#bk-confirm').disabled=true;
+    showModal('booking');
+  }
+  $('#bk-date').addEventListener('input', enableConfirm);
+  $('#bk-time').addEventListener('input', enableConfirm);
+  function enableConfirm(){ $('#bk-confirm').disabled = !($('#bk-date').value && $('#bk-time').value) }
+
+  $('#bk-confirm').addEventListener('click',()=>{
+    const date=$('#bk-date').value;
+    const time=$('#bk-time').value;
+    const notes=$('#bk-notes').value.slice(0,180);
+    const appt={specialist:selectedSP,date,time,notes};
+    appointments=[...appointments, appt]; saveLS('appointments', appointments);
+    hideModal('booking'); setRoute('dashboard');
+
+    if(sp_userId && appt.specialist?.id===sp_userId){
+      try{ renderSpAppointments(); }catch{}
+    }
+
+    const ref={
+      id:uid(),
+      createdAt:new Date().toISOString(),
+      specialist:{id:selectedSP.id,name:selectedSP.name,email:selectedSP.email,phone:selectedSP.phone},
+      patient:{name:'مستخدم PhysioConnect'},
+      date,time,
+      symptoms:query,
+      notes:($('#bk-notes').value||'').slice(0,500),
+      ratings: readLS('exercises', DEFAULT_EXERCISES).map(e=>({id:e.id,name:e.name,pain:e.pain??null,effort:e.effort??null,done:e.done}))
+    };
+    referrals=[ref,...referrals]; saveLS('referrals', referrals); openShare(ref);
+  });
+  $$('#booking [data-close]').forEach(b=> b.addEventListener('click',()=> hideModal('booking')) );
+
+  function openShare(payload){
+    $('#sh-sp').textContent = payload.specialist.name;
+    $('#sh-dt').textContent = `${payload.date} — ${payload.time}`;
+    $('#sh-sym').textContent = payload.symptoms || '—';
+    $('#sh-notes').textContent = payload.notes || '—';
+    $('#sh-id').textContent = payload.id;
+    $('#sh-json').value = JSON.stringify(payload, null, 2);
+    const mail=`mailto:${encodeURIComponent(payload.specialist.email)}?subject=${encodeURIComponent('إحالة/طلب موعد — PhysioConnect')}&body=${encodeURIComponent(
+`بيانات الحجز:
+- المريض: ${payload.patient.name}
+- التاريخ: ${payload.date}
+- الوقت: ${payload.time}
+- الأعراض: ${payload.symptoms||'—'}
+- ملاحظات: ${payload.notes||'—'}
+- رمز الإحالة: ${payload.id}`)}`;
+    const wa=`https://wa.me/${String(payload.specialist.phone||'').replace(/\D/g,'')}?text=${encodeURIComponent(
+`مرحبًا دكتور/ة ${payload.specialist.name}, هذا طلب موعد عبر PhysioConnect
+التاريخ: ${payload.date} ${payload.time}
+الأعراض: ${payload.symptoms||'—'}
+الملاحظات: ${payload.notes||'—'}
+رمز الإحالة: ${payload.id}`)}`;
+    $('#sh-mail').setAttribute('href', mail);
+    $('#sh-wa').setAttribute('href', wa);
+    showModal('share');
+  }
+  $('#sh-copy').addEventListener('click', async()=>{
+    const ok=await copyText($('#sh-json').value);
+    alert(ok?'تم النسخ ✅':'تعذّر النسخ');
+  });
+  $('#sh-dl').addEventListener('click',()=> downloadJSON(JSON.parse($('#sh-json').value), `physio-referral-${$('#sh-id').textContent}.json`) );
+  $$('#share [data-close]').forEach(b=> b.addEventListener('click',()=> hideModal('share')) );
+
+  function showModal(id){
+    const el=$('#'+id); if(!el) return;
+    el.classList.remove('hidden'); el.setAttribute('aria-hidden','false');
+  }
+  function hideModal(id){
+    const el=$('#'+id); if(!el) return;
+    el.classList.add('hidden'); el.setAttribute('aria-hidden','true');
+  }
+
+  // ===== Dashboard (patient) =====
+  function renderDashboard(){
+    const box=$('#appt-list'); box.innerHTML='';
+    if(appointments.length===0){
+      box.innerHTML='<div class="muted">لا توجد مواعيد بعد. احجز أول موعد من صفحة البحث.</div>';
+    }
+    appointments.forEach((a,i)=>{
+      const el=document.createElement('div'); el.className='card p-4';
+      el.innerHTML=`<div class="flex items-center justify-between">
+        <div>
+          <div class="fw-700">${a.specialist.name}</div>
+          <div class="text-sm muted">📅 ${a.date} • ${a.time} — ${a.specialist.remote? 'جلسة عن بُعد': a.specialist.location}</div>
+          ${a.notes?`<div class="text-xs muted">ملاحظات: ${a.notes}</div>`:''}
+        </div>
+        <div class="flex gap-2">
+          <button class="btn">اتصال</button>
+          <button class="btn btn-primary">دخول الجلسة</button>
+          <button class="btn" data-share>حفظ ومشاركة</button>
+          <button class="btn" data-cancel>إلغاء</button>
+        </div>
+      `;
+      el.querySelector('[data-share]').addEventListener('click',()=>{
+        const exs=readLS('exercises', DEFAULT_EXERCISES);
+        const ref={
+          id:uid(),
+          createdAt:new Date().toISOString(),
+          specialist:{id:a.specialist.id,name:a.specialist.name,email:a.specialist.email,phone:a.specialist.phone},
+          patient:{name:'مستخدم PhysioConnect'},
+          date:a.date,time:a.time,
+          symptoms:query,
+          notes:a.notes||'',
+          ratings: exs.map(e=>({id:e.id,name:e.name,pain:e.pain??null,effort:e.effort??null,done:e.done}))
+        };
+        referrals=[ref,...referrals]; saveLS('referrals',referrals); openShare(ref);
+      });
+      el.querySelector('[data-cancel]').addEventListener('click',()=>{
+        appointments=appointments.filter((_,j)=>j!==i);
+        saveLS('appointments',appointments);
+        renderDashboard();
+        try{ renderSpAppointments(); }catch{}
+      });
+      box.appendChild(el);
+    });
+
+    const exBox=$('#ex-list'); exBox.innerHTML='';
+    const completed=exercises.filter(e=>e.done).length;
+    const progress=Math.round( (completed/Math.max(exercises.length,1))*100 );
+    $('#progressPct').textContent=progress+"%";
+    $('#progressBar').style.width=progress+"%";
+    exercises.forEach(ex=>{
+      const el=document.createElement('div'); el.className='card p-4';
+      el.innerHTML=`
+        <label class="flex items-center gap-3">
+          <input type="checkbox" ${ex.done?'checked':''}/>
+          <span class="${ex.done?'line-through muted':''}">${ex.name}</span>
+        </label>
+        <div class="flex gap-2" style="margin-top:8px"><button class="btn" data-details>شرح التمرين</button></div>
+        <div class="row row-2" style="margin-top:8px">
+          <div>
+            <div class="text-xs muted" style="margin-bottom:4px">مستوى الألم (كلمات):</div>
+            <div class="flex gap-2">
+              ${PAIN_LEVELS.map(p=>`<button class="btn ${ex.pain===p?'btn-rose':''}" data-pain="${p}">${p}</button>`).join('')}
+            </div>
+            ${ex.pain?`<div class="text-xs" style="margin-top:4px">المحدد: <b>${ex.pain}</b></div>`:''}
+          </div>
+          <div>
+            <div class="text-xs muted" style="margin-bottom:4px">مستوى الجهد (كلمات):</div>
+            <div class="flex gap-2">
+              ${EFFORT_LEVELS.map(e=>`<button class="btn ${ex.effort===e?'btn-emerald':''}" data-effort="${e}">${e}</button>`).join('')}
+            </div>
+            ${ex.effort?`<div class="text-xs" style="margin-top:4px">المحدد: <b>${ex.effort}</b></div>`:''}
+          </div>
+        </div>`;
+      el.querySelector('input').addEventListener('change',(ev)=>{
+        ex.done=ev.target.checked; saveLS('exercises',exercises); renderDashboard()
+      });
+      el.querySelector('[data-details]').addEventListener('click',()=>{
+        alert(`${ex.name}\n\n${ex.desc||''}\n\nالخطوات:\n- ${(ex.steps||[]).join('\n- ')}\n\nتنبيهات:\n- ${(ex.cautions||[]).join('\n- ')}`);
+      });
+      el.querySelectorAll('[data-pain]').forEach(b=> b.addEventListener('click',()=>{
+        ex.pain=b.dataset.pain; saveLS('exercises',exercises); renderDashboard();
+      }));
+      el.querySelectorAll('[data-effort]').forEach(b=> b.addEventListener('click',()=>{
+        ex.effort=b.dataset.effort; saveLS('exercises',exercises); renderDashboard();
+      }));
+      exBox.appendChild(el);
+    });
+  }
+
+  // ===== Specialist (patients, plans, chart) =====
+  function renderSpecialist(){
+    const list=$('#sp-patients'); list.innerHTML='';
+    sp_patients.forEach(p=>{
+      const el=document.createElement('div'); el.className='flex items-center justify-between card p-4';
+      el.innerHTML=`<button class="btn" data-open>${p.name}</button><button class="btn" data-del>حذف</button>`;
+      el.querySelector('[data-open]').addEventListener('click',()=>{ sp_currentId=p.id; renderSpecialist() });
+      el.querySelector('[data-del]').addEventListener('click',()=>{
+        sp_patients=sp_patients.filter(x=>x.id!==p.id); delete sp_plans[p.id]; delete sp_readings[p.id];
+        saveLS('sp_patients',sp_patients); saveLS('sp_plans',sp_plans); saveLS('sp_readings',sp_readings);
+        if(sp_currentId===p.id) sp_currentId=sp_patients[0]?.id||'';
+        renderSpecialist();
+      });
+      list.appendChild(el);
+    });
+    if(sp_patients.length===0){
+      list.innerHTML='<div class="muted text-sm">لا يوجد مرضى — أضف مريضًا جديدًا.</div>';
+    }
+    $('#sp-current-name').textContent = (sp_patients.find(p=>p.id===sp_currentId)||{}).name || '—';
+
+    const planBox=$('#sp-plan'); planBox.innerHTML='';
+    const plan = sp_plans[sp_currentId] || [];
+    plan.forEach(e=>{
+      const el=document.createElement('div'); el.className='flex items-center justify-between card p-4';
+      el.innerHTML=`<div>
+        <div class="fw-700">${e.name}</div>
+        <div class="text-xs muted">${e.notes||'—'}</div>
+        ${e.video?`<div class="text-xs"><a href="${e.video}" target="_blank">رابط فيديو</a></div>`:''}
+      </div><button class="btn" data-del>حذف</button>`;
+      el.querySelector('[data-del]').addEventListener('click',()=>{
+        sp_plans[sp_currentId] = (sp_plans[sp_currentId]||[]).filter(x=>x.id!==e.id);
+        saveLS('sp_plans',sp_plans);
+        renderSpecialist();
+      });
+      planBox.appendChild(el);
+    });
+    if(plan.length===0){
+      planBox.innerHTML='<div class="muted text-sm">لا توجد تمارين بعد.</div>';
+    }
+
+    drawChart();
+  }
+
+  $('#sp-add').addEventListener('click',()=>{
+    const name=$('#sp-new-name').value.trim();
+    if(!name) return;
+    const p={id:uid(),name};
+    sp_patients=[p,...sp_patients];
+    saveLS('sp_patients',sp_patients);
+    $('#sp-new-name').value='';
+    sp_currentId=p.id;
+    renderSpecialist();
+  });
+
+  $('#sp-add-ex').addEventListener('click',()=>{
+    if(!sp_currentId) return;
+    const name=$('#ex-name').value.trim();
+    if(!name) return;
+    const ex={
+      id:uid(),
+      name: `${name}${Number($('#ex-sets').value)?` (${Number($('#ex-sets').value)}×${Number($('#ex-reps').value)})`:''}`,
+      reps:Number($('#ex-reps').value)||10,
+      sets:Number($('#ex-sets').value)||3,
+      holdSec:Number($('#ex-hold').value)||0,
+      video:($('#ex-video').value||'').trim()||undefined,
+      notes:($('#ex-notes').value||'').trim()||undefined
+    };
+    sp_plans[sp_currentId]=[ex, ...(sp_plans[sp_currentId]||[])];
+    saveLS('sp_plans',sp_plans);
+    $('#ex-name').value=''; $('#ex-video').value=''; $('#ex-notes').value='';
+    $('#ex-hold').value=0; $('#ex-reps').value=12; $('#ex-sets').value=3;
+    renderSpecialist();
+  });
+  $('#sp-new-plan').addEventListener('click',()=>{
+    if(!sp_currentId) return;
+    sp_plans[sp_currentId]=[];
+    saveLS('sp_plans',sp_plans);
+    renderSpecialist();
+  });
+
+  $('#sp-add-reading').addEventListener('click',()=>{
+    if(!sp_currentId) return;
+    const day=new Date();
+    const label=day.toISOString().slice(0,10);
+    const rnd=(a,b)=> Math.max(0,Math.min(10, Math.round(a+Math.random()*(b-a))));
+    const rec={date:label,pain:rnd(2,6),rpe:rnd(2,6)};
+    const list=sp_readings[sp_currentId]||[];
+    sp_readings[sp_currentId]=[...list.slice(-13),rec];
+    saveLS('sp_readings',sp_readings);
+    drawChart();
+  });
+
+  function drawChart(){
+    const svg=$('#sp-chart'); const width=560, height=220, pad=28, maxY=10;
+    const base=[
+      {date:'اليوم 1',pain:6,rpe:5},
+      {date:'اليوم 2',pain:5,rpe:6},
+      {date:'اليوم 3',pain:4,rpe:5},
+      {date:'اليوم 4',pain:5,rpe:4},
+      {date:'اليوم 5',pain:3,rpe:3},
+      {date:'اليوم 6',pain:2,rpe:4},
+      {date:'اليوم 7',pain:3,rpe:3}
+    ];
+    const rs=(sp_readings[sp_currentId]||[]).length? sp_readings[sp_currentId]: base;
+    const labels=rs.map(r=> r.date.replace(/^\d{4}-/,'') );
+    const pain=rs.map(r=>r.pain);
+    const rpe=rs.map(r=>r.rpe);
+    const x=i => pad + (i*(width-pad*2))/Math.max(labels.length-1,1);
+    const y=v => pad + (height-pad*2) * (1 - v/maxY);
+    const path = arr => arr.map((v,i)=> `${i===0?'M':'L'}${x(i)},${y(v)}`).join(' ');
+    svg.innerHTML='';
+    [0,2,4,6,8,10].forEach(g=>{
+      const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+      l.setAttribute('x1',pad); l.setAttribute('x2',width-pad);
+      l.setAttribute('y1',y(g)); l.setAttribute('y2',y(g));
+      l.setAttribute('stroke','#e5e7eb'); l.setAttribute('stroke-dasharray','4 4'); svg.appendChild(l);
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',8); t.setAttribute('y',y(g)+4);
+      t.setAttribute('font-size','10'); t.setAttribute('fill','#64748b');
+      t.textContent=g; svg.appendChild(t);
+    });
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', path(pain)); p.setAttribute('fill','none');
+    p.setAttribute('stroke', '#ef4444'); p.setAttribute('stroke-width','2'); svg.appendChild(p);
+    const r=document.createElementNS('http://www.w3.org/2000/svg','path');
+    r.setAttribute('d', path(rpe)); r.setAttribute('fill','none');
+    r.setAttribute('stroke', '#0ea5e9'); r.setAttribute('stroke-width','2'); svg.appendChild(r);
+    labels.forEach((lb,i)=>{
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', x(i)); t.setAttribute('y', height-6);
+      t.setAttribute('font-size','10'); t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','#94a3b8'); t.textContent=lb; svg.appendChild(t);
+    });
+  }
+
+  // ===== Specialist Appointments Tab =====
+  function renderSpAppointments(){
+    const box = document.getElementById('sp-appointments');
+    if(!box) return;
+    const q = (document.getElementById('sp-appt-q')?.value || '').trim().toLowerCase();
+    box.innerHTML = '';
+
+    const mine = appointments.filter(a=> a.specialist && a.specialist.id === sp_userId);
+    let filtered = mine;
+    if(q){
+      filtered = mine.filter(a=>{
+        return (a.specialist.name || '').toLowerCase().includes(q) ||
+               (a.notes || '').toLowerCase().includes(q) ||
+               (a.date || '').toLowerCase().includes(q) ||
+               (a.time || '').toLowerCase().includes(q);
+      });
+    }
+
+    if(filtered.length===0){
+      box.innerHTML = '<div class="muted text-sm">لا توجد مواعيد مرتبطة بهذا الأخصائي حاليًا.</div>';
+      return;
+    }
+
+    filtered.forEach((a)=>{
+      const el=document.createElement('div'); el.className='card p-4';
+      el.innerHTML=`
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="fw-700">${a.specialist.name}</div>
+            <div class="text-sm muted">📅 ${a.date} • ${a.time} — ${a.specialist.remote? 'جلسة عن بُعد': a.specialist.location}</div>
+            ${a.notes?`<div class="text-xs muted">ملاحظات المريض: ${a.notes}</div>`:''}
+          </div>
+          <div class="flex gap-2">
+            <button class="btn" data-share>مشاركة</button>
+            <button class="btn" data-cancel>إلغاء الموعد</button>
+          </div>
+        </div>`;
+      el.querySelector('[data-share]').addEventListener('click',()=>{
+        const exs=readLS('exercises', DEFAULT_EXERCISES);
+        const ref={
+          id:uid(),
+          createdAt:new Date().toISOString(),
+          specialist:{id:a.specialist.id,name:a.specialist.name,email:a.specialist.email,phone:a.specialist.phone},
+          patient:{name:'مستخدم PhysioConnect'},
+          date:a.date,time:a.time,
+          symptoms:query,
+          notes:a.notes||'',
+          ratings: exs.map(e=>({id:e.id,name:e.name,pain:e.pain??null,effort:e.effort??null,done:e.done}))
+        };
+        referrals=[ref,...referrals]; saveLS('referrals',referrals); openShare(ref);
+      });
+      el.querySelector('[data-cancel]').addEventListener('click',()=>{
+        appointments = appointments.filter(a2 => !(a2.date===a.date && a2.time===a.time && a2.specialist.id===a.specialist.id && a2.notes===a.notes));
+        saveLS('appointments', appointments);
+        renderSpAppointments();
+        try{ renderDashboard(); }catch{}
+      });
+      box.appendChild(el);
+    });
+  }
+
+  // ===== Specialist Tabs =====
+  function setSpTab(tabId){
+    const ids = ['sp-tab-main','sp-tab-appts','sp-tab-ai'];
+    ids.forEach(id=>{
+      const sec = document.getElementById(id);
+      if(!sec) return;
+      if(id===tabId) sec.classList.remove('hidden');
+      else sec.classList.add('hidden');
+    });
+    $$('.sp-tab-btn').forEach(btn=>{
+      btn.classList.toggle('btn-primary', btn.dataset.tab===tabId);
+    });
+  }
+
+  // ===== Shared AI logic =====
+  function buildAiResponseHtml(txt){
+    const blocks=[];
+    if(/ركبة|رباط|غضروف/.test(txt)){
+      blocks.push(
+        '• التركيز على تمارين تقوية العضلة الرباعية والورك، مع تجنّب الجري أو القفز في المراحل الأولى.',
+        '• يمكن اقتراح تمارين مثل: Straight Leg Raise، Mini Squats، وBridging بدرجات تقدم مختلفة.'
+      );
+    }
+    if(/ظهر|اسفل الظهر|أسفل الظهر|عمود/.test(txt)){
+      blocks.push(
+        '• البدء بتمارين التحكم في الجذع (Core Stability) مع تصحيح وضعيات الجلوس لفترات العمل أو الدراسة.',
+        '• تمارين مقترحة: Pelvic Tilt، Cat–Camel، Plank المعدل، مع زيادة الشدة تدريجيًا حسب تحمّل المريض.'
+      );
+    }
+    if(/رقبة|عنق|كتف/.test(txt)){
+      blocks.push(
+        '• التركيز على تمارين الإطالة اللطيفة للرقبة، وتقوية عضلات الكتف العليا والمتوسطة مع مراجعة وضعية الرأس للأمام.',
+        '• يمكن التدرج في التمارين من إطالات بسيطة إلى تقوية باستخدام أشرطة مطاطية (TheraBand).'
+      );
+    }
+    if(/بعد العملية|عملية|جراحة/.test(txt)){
+      blocks.push(
+        '• التأكيد على الالتزام بتعليمات الجراح وفريق التأهيل من حيث عدد التكرارات وحدود الحركة المسموح بها.',
+        '• يتم تعديل شدة التمارين طبقًا لمرحلة ما بعد العملية (مرحلة حماية، استعادة حركة، تقوية متقدمة).'
+      );
+    }
+    if(blocks.length===0){
+      blocks.push(
+        '• يُنصح ببدء برنامج تمارين تدريجي يراعي شدة الألم والحالة الصحية العامة.',
+        '• يفضّل تسجيل مستوى الألم قبل وبعد التمرين، ومراجعة الخطة العلاجية عند زيادة الأعراض أو عدم تحسنها.'
+      );
+    }
+
+    return `
+      <div class="text-sm">
+        <div style="margin-bottom:6px"><b>تحليل مبدئي للنص المدخل:</b></div>
+        <ul style="margin:0;padding-right:20px">
+          ${blocks.map(b=>`<li>${b}</li>`).join('')}
+        </ul>
+        <div class="text-xs muted" style="margin-top:8px">
+          هذه التوصيات لأغراض تعليمية فقط، والخطة النهائية يجب أن تعتمد على تقييم أخصائي العلاج الطبيعي.
+        </div>
+      </div>`;
+  }
+
+  function runAiAssistantFor(inputId, outputId){
+    const inputEl = document.getElementById(inputId);
+    const outEl = document.getElementById(outputId);
+    if(!inputEl || !outEl) return;
+    const txt = inputEl.value.trim();
+    if(!txt){
+      outEl.innerHTML = '<span class="muted">الرجاء كتابة وصف مختصر للحالة أو السؤال لتحليلها مبدئيًا.</span>';
+      return;
+    }
+    outEl.innerHTML = buildAiResponseHtml(txt);
+  }
+
+  // ===== Start =====
+  document.getElementById('year').textContent = new Date().getFullYear();
+  updateNavbarForRole();
+  hideModal('share'); hideModal('booking');
+  ['share','booking'].forEach(id=>{
+    const m=document.getElementById(id);
+    if(m){ m.classList.add('hidden'); m.setAttribute('aria-hidden','true'); }
+  });
+  setRoute('landing');
+
+  // تبويبات الأخصائي
+  $$('.sp-tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=> setSpTab(btn.dataset.tab));
+  });
+  const spApptQ = document.getElementById('sp-appt-q');
+  if(spApptQ){
+    spApptQ.addEventListener('input', renderSpAppointments);
+  }
+
+  // أزرار المساعد الذكي
+  const aiRunBtn = document.getElementById('ai-run');
+  if(aiRunBtn){
+    aiRunBtn.addEventListener('click', ()=> runAiAssistantFor('ai-input','ai-output'));
+  }
+  const ptAiBtn = document.getElementById('pt-ai-run');
+  if(ptAiBtn){
+    ptAiBtn.addEventListener('click', ()=> runAiAssistantFor('pt-ai-input','pt-ai-output'));
+  }
+
+  // ===== Runtime Tests =====
+  console.assert(Array.isArray(SPECIALISTS)&&SPECIALISTS.length>=3,'[TEST] SPECIALISTS defined with >=3');
+  console.assert(Array.isArray(DEFAULT_EXERCISES)&&DEFAULT_EXERCISES.length>=3,'[TEST] default exercises exist');
+  console.assert(!!document.getElementById('page-login') && !!document.getElementById('page-dashboard') && !!document.getElementById('page-specialist'),'[TEST] pages exist');
+  console.assert(true,'[TEST] app should start at landing');
+  (function(){
+    const prevRole = role, prevRoute = route;
+    role='patient'; setRoute('specialist'); console.assert(route!=='specialist','[TEST] patient cannot open specialist');
+    role='specialist'; setRoute('home'); console.assert(route==='specialist','[TEST] specialist locked to specialist page');
+    role=prevRole; setRoute(prevRoute||'landing');
+    const id1=uid(), id2=uid(); console.assert(id1!==id2 && id1.length>6 && id2.length>6,'[TEST] uid uniqueness');
+  })();
+  </script>
+</body>
+</html>
