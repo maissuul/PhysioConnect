@@ -96,31 +96,76 @@
   <header id="navbar" class="hidden">
     <div class="container py-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <div style="width:36px;height:36px;border-radius:12px;background:var(--sky);display:grid;place-items:center;color:#fff">⚕️</div>
+        <!-- لوقو PhysioConnect الجديد -->
+        <div style="
+          width:40px;
+          height:40px;
+          border-radius:16px;
+          overflow:hidden;
+          display:grid;
+          place-items:center;
+          background:#e5f4ff;
+        ">
+          <!-- هنا التعديل: مسار صورة اللوقو -->
+          <img src="physioconnect-logo.png"
+               alt="PhysioConnect logo"
+               style="width:38px;height:38px;object-fit:contain;display:block;">
+        </div>
         <div>
           <div class="fw-700">PhysioConnect</div>
           <div class="text-xs muted">منصة العلاج الطبيعي عن بُعد</div>
         </div>
       </div>
       <nav>
-        <button class="nav-btn" data-route="home" data-role="patient">الرئيسية (المريض)</button>
-        <button class="nav-btn" data-route="find" data-role="patient">ابحث عن أخصائي</button>
-        <button class="nav-btn" data-route="dashboard" data-role="patient">ملفي العلاجي</button>
+        <!-- زر واحد للمريض فقط -->
+        <button class="nav-btn" data-route="home" data-role="patient">صفحة المريض</button>
+        <!-- زر الأخصائي -->
         <button class="nav-btn" data-route="specialist" data-role="specialist">صفحة الأخصائي</button>
+        <!-- زر الخروج -->
         <button id="logoutBtn" class="nav-btn" style="margin-inline-start:8px">خروج</button>
       </nav>
     </div>
   </header>
 
-  <!-- هيدر صفحة الترحيب: زر تسجيل الدخول أعلى الصفحة -->
-  <header id="landing-header">
-    <div class="container py-3 flex items-center justify-between">
-      <div class="fw-700 text-lg">PhysioConnect</div>
-      <button id="landing-login-top" class="btn btn-primary">
-        تسجيل الدخول
-      </button>
+  <!-- تبويبات المسارات للمريض -->
+  <section id="patient-route-tabs" class="hidden">
+    <div class="container" style="padding:8px 16px 0">
+      <div class="card p-4">
+        <div class="flex gap-2">
+          <button class="btn pt-route-btn" data-route="home">الرئيسية (المريض)</button>
+          <button class="btn pt-route-btn" data-route="find">ابحث عن أخصائي</button>
+          <button class="btn pt-route-btn" data-route="dashboard">ملفي العلاجي</button>
+        </div>
+      </div>
     </div>
-  </header>
+  </section>
+
+  <!-- هيدر صفحة الترحيب (قبل تسجيل الدخول) -->
+  <header id="landing-header">
+  <div class="container py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div style="
+        width:40px;
+        height:40px;
+        border-radius:16px;
+        overflow:hidden;
+        display:grid;
+        place-items:center;
+        background:#e5f4ff;
+      ">
+        <img src="physioconnect-logo.png"
+             alt="PhysioConnect logo"
+             style="width:38px;height:38px;object-fit:contain;display:block;">
+      </div>
+      <div class="fw-700 text-lg">PhysioConnect</div>
+    </div>
+
+    <button id="landing-login-top" class="btn btn-primary">
+      تسجيل الدخول
+    </button>
+  </div>
+</header>
+
 
   <!-- صفحة رئيسية قبل تسجيل الدخول (Landing) -->
   <main id="page-landing">
@@ -205,7 +250,7 @@
     </div>
   </main>
 
-  <!-- Home (مريض) - مختلفة عن صفحة الترحيب -->
+  <!-- Home (مريض) -->
   <main id="page-home" class="hidden">
     <!-- صف علوي: ملخص + بحث سريع -->
     <section class="container" style="padding:24px 16px 8px">
@@ -614,6 +659,21 @@
     `;
   }
 
+  // ===== Patient route tabs (الرئيسية / ابحث / ملفي) =====
+  function updatePatientRouteTabs(){
+    const sec = document.getElementById('patient-route-tabs');
+    if(!sec) return;
+    // يظهر فقط عند دخول المريض لصفحات النظام
+    if(role === 'patient' && route !== 'landing' && route !== 'login'){
+      sec.classList.remove('hidden');
+      $$('.pt-route-btn').forEach(btn=>{
+        btn.classList.toggle('btn-primary', btn.dataset.route === route);
+      });
+    }else{
+      sec.classList.add('hidden');
+    }
+  }
+
   // ===== Routing =====
   const pages={
     landing: $('#page-landing'),
@@ -647,7 +707,9 @@
 
     updateNavbarForRole();
     $$('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.route===r));
-    if(r==='dashboard'){renderDashboard()}
+    updatePatientRouteTabs();
+
+    if(r==='dashboard'){ renderDashboard(); }
     if(r==='find'){renderFind()}
     if(r==='home'){ $('#home-query').value=query; renderHome(); }
     if(r==='specialist'){
@@ -666,6 +728,11 @@
   }
   $$('.nav-btn').forEach(b=> b.addEventListener('click',()=> setRoute(b.dataset.route)) );
   $('#logoutBtn').addEventListener('click',()=>{ role=null; updateNavbarForRole(); setRoute('landing') });
+
+  // أزرار تبويبات المسارات للمريض
+  $$('.pt-route-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> setRoute(btn.dataset.route));
+  });
 
   // ===== Landing events =====
   const landingLoginTop = document.getElementById('landing-login-top');
@@ -813,15 +880,14 @@
   $$('#booking [data-close]').forEach(b=> b.addEventListener('click',()=> hideModal('booking')) );
 
   function openShare(payload){
-  $('#sh-sp').textContent = payload.specialist.name;
-  $('#sh-dt').textContent = `${payload.date} — ${payload.time}`;
-  $('#sh-sym').textContent = payload.symptoms || '—';
-  $('#sh-notes').textContent = payload.notes || '—';
-  $('#sh-id').textContent = payload.id;
-  $('#sh-json').value = JSON.stringify(payload, null, 2);
+    $('#sh-sp').textContent = payload.specialist.name;
+    $('#sh-dt').textContent = `${payload.date} — ${payload.time}`;
+    $('#sh-sym').textContent = payload.symptoms || '—';
+    $('#sh-notes').textContent = payload.notes || '—';
+    $('#sh-id').textContent = payload.id;
+    $('#sh-json').value = JSON.stringify(payload, null, 2);
 
-  // إرسال عبر الإيميل (نفس ما هو)
-  const mail=`mailto:${encodeURIComponent(payload.specialist.email)}?subject=${encodeURIComponent('إحالة/طلب موعد — PhysioConnect')}&body=${encodeURIComponent(
+    const mail=`mailto:${encodeURIComponent(payload.specialist.email)}?subject=${encodeURIComponent('إحالة/طلب موعد — PhysioConnect')}&body=${encodeURIComponent(
 `بيانات الحجز:
 - المريض: ${payload.patient.name}
 - التاريخ: ${payload.date}
@@ -830,10 +896,9 @@
 - ملاحظات: ${payload.notes||'—'}
 - رمز الإحالة: ${payload.id}`)}`;
 
-  // 👈 هنا التغيير: تجاهل رقم الأخصائي واستخدم رقم ثابت
-  const waNumber = '966505914101'; // 0505914101 بصيغة دولية بدون الصفر
+    const waNumber = '966505914101'; // 0505914101 بصيغة دولية بدون الصفر
 
-  const wa=`https://wa.me/${waNumber}?text=${encodeURIComponent(
+    const wa=`https://wa.me/${waNumber}?text=${encodeURIComponent(
 `مرحبًا، هذا طلب موعد جديد عبر PhysioConnect
 الأخصائي: ${payload.specialist.name}
 التاريخ: ${payload.date} ${payload.time}
@@ -841,10 +906,10 @@
 الملاحظات: ${payload.notes||'—'}
 رمز الإحالة: ${payload.id}`)}`;
 
-  $('#sh-mail').setAttribute('href', mail);
-  $('#sh-wa').setAttribute('href', wa);
-  showModal('share');
-}
+    $('#sh-mail').setAttribute('href', mail);
+    $('#sh-wa').setAttribute('href', wa);
+    showModal('share');
+  }
 
   $('#sh-copy').addEventListener('click', async()=>{
     const ok=await copyText($('#sh-json').value);
@@ -1222,12 +1287,12 @@
   // ===== Start =====
   document.getElementById('year').textContent = new Date().getFullYear();
   updateNavbarForRole();
+  updatePatientRouteTabs();
   hideModal('share'); hideModal('booking');
   ['share','booking'].forEach(id=>{
     const m=document.getElementById(id);
     if(m){ m.classList.add('hidden'); m.setAttribute('aria-hidden','true'); }
   });
-  setRoute('landing');
 
   // تبويبات الأخصائي
   $$('.sp-tab-btn').forEach(btn=>{
@@ -1248,6 +1313,9 @@
     ptAiBtn.addEventListener('click', ()=> runAiAssistantFor('pt-ai-input','pt-ai-output'));
   }
 
+  // ابدأ في صفحة الهبوط
+  setRoute('landing');
+
   // ===== Runtime Tests =====
   console.assert(Array.isArray(SPECIALISTS)&&SPECIALISTS.length>=3,'[TEST] SPECIALISTS defined with >=3');
   console.assert(Array.isArray(DEFAULT_EXERCISES)&&DEFAULT_EXERCISES.length>=3,'[TEST] default exercises exist');
@@ -1261,5 +1329,6 @@
     const id1=uid(), id2=uid(); console.assert(id1!==id2 && id1.length>6 && id2.length>6,'[TEST] uid uniqueness');
   })();
   </script>
+
 </body>
 </html>
