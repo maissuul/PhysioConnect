@@ -96,8 +96,7 @@
   <header id="navbar" class="hidden">
     <div class="container py-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <!-- لوقو PhysioConnect الجديد -->
-        <img src="physioconnect-logo.png" alt="PhysioConnect Logo" style="height:40px;width:auto;border-radius:10px;display:block" />
+        <div style="width:36px;height:36px;border-radius:12px;background:var(--sky);display:grid;place-items:center;color:#fff">⚕️</div>
         <div>
           <div class="fw-700">PhysioConnect</div>
           <div class="text-xs muted">منصة العلاج الطبيعي عن بُعد</div>
@@ -116,11 +115,7 @@
   <!-- هيدر صفحة الترحيب: زر تسجيل الدخول أعلى الصفحة -->
   <header id="landing-header">
     <div class="container py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <!-- نفس اللوقو في صفحة الترحيب -->
-        <img src="physioconnect-logo.png" alt="PhysioConnect Logo" style="height:32px;width:auto;border-radius:10px;display:block" />
-        <div class="fw-700 text-lg">PhysioConnect</div>
-      </div>
+      <div class="fw-700 text-lg">PhysioConnect</div>
       <button id="landing-login-top" class="btn btn-primary">
         تسجيل الدخول
       </button>
@@ -818,13 +813,15 @@
   $$('#booking [data-close]').forEach(b=> b.addEventListener('click',()=> hideModal('booking')) );
 
   function openShare(payload){
-    $('#sh-sp').textContent = payload.specialist.name;
-    $('#sh-dt').textContent = `${payload.date} — ${payload.time}`;
-    $('#sh-sym').textContent = payload.symptoms || '—';
-    $('#sh-notes').textContent = payload.notes || '—';
-    $('#sh-id').textContent = payload.id;
-    $('#sh-json').value = JSON.stringify(payload, null, 2);
-    const mail=`mailto:${encodeURIComponent(payload.specialist.email)}?subject=${encodeURIComponent('إحالة/طلب موعد — PhysioConnect')}&body=${encodeURIComponent(
+  $('#sh-sp').textContent = payload.specialist.name;
+  $('#sh-dt').textContent = `${payload.date} — ${payload.time}`;
+  $('#sh-sym').textContent = payload.symptoms || '—';
+  $('#sh-notes').textContent = payload.notes || '—';
+  $('#sh-id').textContent = payload.id;
+  $('#sh-json').value = JSON.stringify(payload, null, 2);
+
+  // إرسال عبر الإيميل (نفس ما هو)
+  const mail=`mailto:${encodeURIComponent(payload.specialist.email)}?subject=${encodeURIComponent('إحالة/طلب موعد — PhysioConnect')}&body=${encodeURIComponent(
 `بيانات الحجز:
 - المريض: ${payload.patient.name}
 - التاريخ: ${payload.date}
@@ -832,16 +829,23 @@
 - الأعراض: ${payload.symptoms||'—'}
 - ملاحظات: ${payload.notes||'—'}
 - رمز الإحالة: ${payload.id}`)}`;
-    const wa=`https://wa.me/${String(payload.specialist.phone||'').replace(/\D/g,'')}?text=${encodeURIComponent(
-`مرحبًا دكتور/ة ${payload.specialist.name}, هذا طلب موعد عبر PhysioConnect
+
+  // 👈 هنا التغيير: تجاهل رقم الأخصائي واستخدم رقم ثابت
+  const waNumber = '966505914101'; // 0505914101 بصيغة دولية بدون الصفر
+
+  const wa=`https://wa.me/${waNumber}?text=${encodeURIComponent(
+`مرحبًا، هذا طلب موعد جديد عبر PhysioConnect
+الأخصائي: ${payload.specialist.name}
 التاريخ: ${payload.date} ${payload.time}
 الأعراض: ${payload.symptoms||'—'}
 الملاحظات: ${payload.notes||'—'}
 رمز الإحالة: ${payload.id}`)}`;
-    $('#sh-mail').setAttribute('href', mail);
-    $('#sh-wa').setAttribute('href', wa);
-    showModal('share');
-  }
+
+  $('#sh-mail').setAttribute('href', mail);
+  $('#sh-wa').setAttribute('href', wa);
+  showModal('share');
+}
+
   $('#sh-copy').addEventListener('click', async()=>{
     const ok=await copyText($('#sh-json').value);
     alert(ok?'تم النسخ ✅':'تعذّر النسخ');
