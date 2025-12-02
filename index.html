@@ -82,7 +82,9 @@
       border-radius:16px;max-width:760px;width:100%
     }
     .list{display:grid;gap:12px}
-    .flex{display:flex}.items-center{align-items:center}
+    .flex{display:flex}
+    .flex-wrap{flex-wrap:wrap} /* جديد: التفاف مرن لتحسين الجوال */
+    .items-center{align-items:center}
     .justify-between{justify-content:space-between}.gap-2{gap:8px}.gap-3{gap:12px}
     .text-xs{font-size:12px}.text-sm{font-size:14px}
     .text-lg{font-size:18px}.text-xl{font-size:22px}.fw-700{font-weight:700}
@@ -142,30 +144,29 @@
 
   <!-- هيدر صفحة الترحيب (قبل تسجيل الدخول) -->
   <header id="landing-header">
-  <div class="container py-3 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <div style="
-        width:40px;
-        height:40px;
-        border-radius:16px;
-        overflow:hidden;
-        display:grid;
-        place-items:center;
-        background:#e5f4ff;
-      ">
-        <img src="physioconnect-logo.png"
-             alt="PhysioConnect logo"
-             style="width:38px;height:38px;object-fit:contain;display:block;">
+    <div class="container py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div style="
+          width:40px;
+          height:40px;
+          border-radius:16px;
+          overflow:hidden;
+          display:grid;
+          place-items:center;
+          background:#e5f4ff;
+        ">
+          <img src="physioconnect-logo.png"
+               alt="PhysioConnect logo"
+               style="width:38px;height:38px;object-fit:contain;display:block;">
+        </div>
+        <div class="fw-700 text-lg">PhysioConnect</div>
       </div>
-      <div class="fw-700 text-lg">PhysioConnect</div>
+
+      <button id="landing-login-top" class="btn btn-primary">
+        تسجيل الدخول
+      </button>
     </div>
-
-    <button id="landing-login-top" class="btn btn-primary">
-      تسجيل الدخول
-    </button>
-  </div>
-</header>
-
+  </header>
 
   <!-- صفحة رئيسية قبل تسجيل الدخول (Landing) -->
   <main id="page-landing">
@@ -283,7 +284,7 @@
           </div>
 
           <!-- أزرار سريعة -->
-          <div class="flex gap-2" style="margin-top:16px;flex-wrap:wrap">
+          <div class="flex gap-2 flex-wrap" style="margin-top:16px">
             <button class="btn btn-primary" id="home-go-dashboard">الذهاب لملفي العلاجي</button>
             <button class="btn" id="home-go-find">حجز موعد جديد / العثور على أخصائي</button>
           </div>
@@ -819,9 +820,9 @@
     results.forEach(sp=>{
       const el=document.createElement('div'); el.className='card p-4';
       el.innerHTML=`
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap">
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <b>${sp.name}</b>
               <span class="badge">${sp.location}</span>
               ${sp.remote?'<span class="badge">عن بُعد</span>':''}
@@ -935,13 +936,13 @@
     }
     appointments.forEach((a,i)=>{
       const el=document.createElement('div'); el.className='card p-4';
-      el.innerHTML=`<div class="flex items-center justify-between">
+      el.innerHTML=`<div class="flex items-center justify-between flex-wrap gap-2">
         <div>
           <div class="fw-700">${a.specialist.name}</div>
           <div class="text-sm muted">📅 ${a.date} • ${a.time} — ${a.specialist.remote? 'جلسة عن بُعد': a.specialist.location}</div>
           ${a.notes?`<div class="text-xs muted">ملاحظات: ${a.notes}</div>`:''}
         </div>
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-wrap">
           <button class="btn">اتصال</button>
           <button class="btn btn-primary">دخول الجلسة</button>
           <button class="btn" data-share>حفظ ومشاركة</button>
@@ -979,22 +980,22 @@
     exercises.forEach(ex=>{
       const el=document.createElement('div'); el.className='card p-4';
       el.innerHTML=`
-        <label class="flex items-center gap-3">
+        <label class="flex items-center gap-3 flex-wrap">
           <input type="checkbox" ${ex.done?'checked':''}/>
           <span class="${ex.done?'line-through muted':''}">${ex.name}</span>
         </label>
-        <div class="flex gap-2" style="margin-top:8px"><button class="btn" data-details>شرح التمرين</button></div>
+        <div class="flex gap-2 flex-wrap" style="margin-top:8px"><button class="btn" data-details>شرح التمرين</button></div>
         <div class="row row-2" style="margin-top:8px">
           <div>
             <div class="text-xs muted" style="margin-bottom:4px">مستوى الألم (كلمات):</div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
               ${PAIN_LEVELS.map(p=>`<button class="btn ${ex.pain===p?'btn-rose':''}" data-pain="${p}">${p}</button>`).join('')}
             </div>
             ${ex.pain?`<div class="text-xs" style="margin-top:4px">المحدد: <b>${ex.pain}</b></div>`:''}
           </div>
           <div>
             <div class="text-xs muted" style="margin-bottom:4px">مستوى الجهد (كلمات):</div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
               ${EFFORT_LEVELS.map(e=>`<button class="btn ${ex.effort===e?'btn-emerald':''}" data-effort="${e}">${e}</button>`).join('')}
             </div>
             ${ex.effort?`<div class="text-xs" style="margin-top:4px">المحدد: <b>${ex.effort}</b></div>`:''}
@@ -1020,7 +1021,7 @@
   function renderSpecialist(){
     const list=$('#sp-patients'); list.innerHTML='';
     sp_patients.forEach(p=>{
-      const el=document.createElement('div'); el.className='flex items-center justify-between card p-4';
+      const el=document.createElement('div'); el.className='flex items-center justify-between card p-4 flex-wrap gap-2';
       el.innerHTML=`<button class="btn" data-open>${p.name}</button><button class="btn" data-del>حذف</button>`;
       el.querySelector('[data-open]').addEventListener('click',()=>{ sp_currentId=p.id; renderSpecialist() });
       el.querySelector('[data-del]').addEventListener('click',()=>{
@@ -1039,7 +1040,7 @@
     const planBox=$('#sp-plan'); planBox.innerHTML='';
     const plan = sp_plans[sp_currentId] || [];
     plan.forEach(e=>{
-      const el=document.createElement('div'); el.className='flex items-center justify-between card p-4';
+      const el=document.createElement('div'); el.className='flex items-center justify-between card p-4 flex-wrap gap-2';
       el.innerHTML=`<div>
         <div class="fw-700">${e.name}</div>
         <div class="text-xs muted">${e.notes||'—'}</div>
@@ -1177,13 +1178,13 @@
     filtered.forEach((a)=>{
       const el=document.createElement('div'); el.className='card p-4';
       el.innerHTML=`
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-2">
           <div>
             <div class="fw-700">${a.specialist.name}</div>
             <div class="text-sm muted">📅 ${a.date} • ${a.time} — ${a.specialist.remote? 'جلسة عن بُعد': a.specialist.location}</div>
             ${a.notes?`<div class="text-xs muted">ملاحظات المريض: ${a.notes}</div>`:''}
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2 flex-wrap">
             <button class="btn" data-share>مشاركة</button>
             <button class="btn" data-cancel>إلغاء الموعد</button>
           </div>
@@ -1277,7 +1278,7 @@
     const outEl = document.getElementById(outputId);
     if(!inputEl || !outEl) return;
     const txt = inputEl.value.trim();
-    if(!txt){
+       if(!txt){
       outEl.innerHTML = '<span class="muted">الرجاء كتابة وصف مختصر للحالة أو السؤال لتحليلها مبدئيًا.</span>';
       return;
     }
